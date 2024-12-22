@@ -48,9 +48,11 @@ bash <script-name>.sh master
 bash <script-name>.sh worker "kubeadm join 192.168.1.100:6443 --token abc123.456xyz789 --discovery-token-ca-cert-hash sha256:abcdef123456..."
 ```
 ```bash
+# Check the nodes
 kubectl get nodes
 ```
 ```bash
+# Test the Deployemnt
 kubectl create deployment nginx --image=nginx
 kubectl expose deployment nginx --type=NodePort --port=80
 ```
