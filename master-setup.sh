@@ -102,5 +102,5 @@ elif [ "$ROLE" = "worker" ]; then
 else
   error "Invalid role: $ROLE. Please specify 'master' or 'worker'."
 fi
-
+sudo systemctl enable kubelet --now
 log "Script execution completed successfully!"
