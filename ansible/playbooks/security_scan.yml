@@ -1,0 +1,5 @@
+- name: Run Security Scans
+  hosts: all
+  tasks:
+    - name: Scan for vulnerabilities
+      command: lynis audit system

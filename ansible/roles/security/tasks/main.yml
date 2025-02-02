@@ -1,0 +1,9 @@
+- name: Install SPIFFE agent
+  apt:
+    name: spire-agent
+    state: present
+
+- name: Enforce eBPF policies
+  copy:
+    src: ebpf/
+    dest: /etc/ebpf/

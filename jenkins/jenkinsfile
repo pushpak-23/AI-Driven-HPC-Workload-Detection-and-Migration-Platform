@@ -1,0 +1,19 @@
+pipeline {
+    agent any
+    stages {
+        stage('Provision Infrastructure') {
+            steps {
+                sh 'cd terraform && terraform apply -auto-approve'
+            }
+        }
+        stage('Deploy Cluster') {
+            steps {
+                ansiblePlaybook(
+                    playbook: 'ansible/playbooks/setup_cluster.yml',
+                    inventory: 'ansible/inventory/local_cluster.ini',
+                    credentialsId: 'ssh-key'
+                )
+            }
+        }
+    }
+}
