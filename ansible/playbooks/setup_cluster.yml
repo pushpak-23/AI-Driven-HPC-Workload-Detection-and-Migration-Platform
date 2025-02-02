@@ -1,0 +1,8 @@
+---
+- name: Configure HPC Cluster
+  hosts: all
+  become: yes
+  roles:
+    - common
+    - slurm
+    - security

@@ -1,0 +1,9 @@
+- name: Install SLURM
+  apt:
+    name: slurm-wlm
+    state: present
+
+- name: Configure slurm.conf
+  template:
+    src: slurm.conf.j2
+    dest: /etc/slurm-llnl/slurm.conf
