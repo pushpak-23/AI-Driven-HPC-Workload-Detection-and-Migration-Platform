@@ -20,7 +20,7 @@ resource "aws_subnet" "public" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.hpc_vpc.id
   tags = {
-    Name = "HPC-IGW"
+    Name = "HPC-igw"
   }
 }
 
