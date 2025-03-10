@@ -15,16 +15,16 @@ MEMORY_USAGE=$(free | awk '/Mem:/ {printf("%.0f\n", $3/$2 * 100)}')
 echo "Checking resources on $NODE_NAME..."
 echo "CPU Usage: $CPU_USAGE%, Memory Usage: $MEMORY_USAGE%"
 
-# If resource usage exceeds threshold, trigger migration
+# If resource usage exceeds threshold, trigger checkpointing
 if [[ "$CPU_USAGE" -ge "$CPU_THRESHOLD" || "$MEMORY_USAGE" -ge "$MEM_THRESHOLD" ]]; then
-    echo "Resources exceeded limits! Initiating migration..."
+    echo "Resources exceeded limits! Initiating BLCR checkpointing..."
 
     # Get running job IDs
     JOBS=$(squeue -h -o "%A" --states=RUNNING --nodelist=$NODE_NAME)
 
     for JOB in $JOBS; do
-        echo "Checkpointing job $JOB..."
-        scontrol checkpoint create JobId=$JOB
+        echo "Checkpointing job $JOB using BLCR..."
+        cr_checkpoint --save-all -f /checkpoint/job_${JOB}.ckpt
     done
 
     # Sync checkpoint files to S3
@@ -35,24 +35,6 @@ if [[ "$CPU_USAGE" -ge "$CPU_THRESHOLD" || "$MEMORY_USAGE" -ge "$MEM_THRESHOLD" 
     echo "Draining node $NODE_NAME..."
     scontrol update nodename=$NODE_NAME state=DRAIN reason="High resource usage"
 
-    # Fetch the checkpoint and restart jobs on another available node
-    echo "Restarting jobs on another node..."
-    for JOB in $JOBS; do
-        CHECKPOINT_FILE="/checkpoint/job_${JOB}.ckpt"
-        if [[ -f "$CHECKPOINT_FILE" ]]; then
-            NEW_NODE=$(sinfo -h -o "%N" --state=IDLE | head -n 1)  # Find an available node
-            if [[ -n "$NEW_NODE" ]]; then
-                echo "Restarting job $JOB on $NEW_NODE..."
-                ssh $NEW_NODE "aws s3 cp $AWS_BUCKET/job_${JOB}.ckpt /checkpoint/ && scontrol restart $CHECKPOINT_FILE"
-            else
-                echo "No available nodes for migration!"
-            fi
-        fi
-    done
-
-    # Resume node after migration
-    echo "Resuming node $NODE_NAME..."
-    scontrol update nodename=$NODE_NAME state=RESUME
 else
-    echo "Resources are within limits, no migration needed."
+    echo "Resources are within limits, no checkpointing needed."
 fi
